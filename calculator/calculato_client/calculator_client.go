@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 
 	"github.com/msouza/grpc-go-course/calculator/calculatorpb"
@@ -10,7 +11,7 @@ import (
 )
 
 func main() {
-	fmt.Println("Hello I'm a client")
+	fmt.Println("CAlculator client")
 
 	cc, err := grpc.Dial("localhost:50051", grpc.WithInsecure())
 	if err != nil {
@@ -20,6 +21,13 @@ func main() {
 	defer cc.Close()
 	c := calculatorpb.NewCalculatorServiceClient(cc)
 
+	// doUnary(c)
+
+	doServerStreaming(c)
+
+}
+
+func doUnary(c calculatorpb.CalculatorServiceClient) {
 	doSun(c)
 	doMultiply(c)
 }
@@ -54,4 +62,29 @@ func doMultiply(c calculatorpb.CalculatorServiceClient) {
 		log.Fatalf("error while calling Greet RPC: %v", err)
 	}
 	log.Printf("Response from Greet: %v", res.Result)
+}
+
+func doServerStreaming(c calculatorpb.CalculatorServiceClient) {
+	fmt.Println("Starting to do a PrimeDecomposition Server Streaming RPC...")
+
+	req := &calculatorpb.PrimeNumberDecompositionRequest{
+		Number: 12390392840,
+	}
+
+	stream, err := c.PrimeNumberDecomposition(context.Background(), req)
+	if err != nil {
+		log.Fatalf("Error while calling PrimeDecomposition RPC: %v", err)
+	}
+
+	for {
+		res, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Fatalf("Something happened: %v", err)
+		}
+		fmt.Println(res.GetPrimeFactor())
+	}
+
 }
