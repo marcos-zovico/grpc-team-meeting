@@ -43,6 +43,6 @@ service GreetService {
     // Server Streaming
     rpc GreetManyTimes(GreetManyTimesRequest) returns (stream GreetManyTimesResponse){};
 
-    rpc LonGret(stream LongGreetRequest) returns (LongGreetResponse){};
+    rpc LonGreet(stream LongGreetRequest) returns (LongGreetResponse){};
 
 } 

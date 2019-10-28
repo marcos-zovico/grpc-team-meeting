@@ -42,13 +42,13 @@ func (*server) GreetManyTimes(req *greetpb.GreetManyTimesRequest, stream greetpb
 	return nil
 }
 
-func (*server) LonGret(stream greetpb.GreetService_LonGretServer) error {
+func (*server) LonGreet(stream greetpb.GreetService_LonGreetServer) error {
 	fmt.Printf("LongGreet function was invoked with a streaming request \n")
 
 	result := ""
 	for {
 		req, err := stream.Recv()
-		if err != io.EOF {
+		if err == io.EOF {
 			// we have finished the client stream
 			return stream.SendAndClose(&greetpb.LongGreetResponse{
 				Result: result,
@@ -59,12 +59,12 @@ func (*server) LonGret(stream greetpb.GreetService_LonGretServer) error {
 		}
 
 		firstName := req.GetGreeting().GetFirstName()
-		result += "Hello " + firstName + "!"
+		result += "Hello " + firstName + "! "
 	}
 }
 
 func main() {
-	fmt.Println("Hello world")
+	fmt.Println("Server running...")
 
 	lis, err := net.Listen("tcp", "0.0.0.0:50051")
 
