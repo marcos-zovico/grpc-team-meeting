@@ -68,7 +68,7 @@ func (*server) GreetEveryone(stream greetpb.GreetService_GreetEveryoneServer) er
 
 	for {
 		req, err := stream.Recv()
-		if err != io.EOF {
+		if err == io.EOF {
 			return nil
 		}
 		if err != nil {

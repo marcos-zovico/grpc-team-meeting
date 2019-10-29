@@ -53,7 +53,7 @@ service GreetService {
     // Client Streaming
     rpc LonGreet(stream LongGreetRequest) returns (LongGreetResponse){};
 
-    // Birectional Streaming
+    // Bi-rectional Streaming
     rpc GreetEveryone (stream GreetEveryoneRequest) returns (stream GreetEveryoneResponse){};
 
 } 
