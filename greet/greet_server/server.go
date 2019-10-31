@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"io"
 	"log"
 	"net"
@@ -11,12 +13,49 @@ import (
 
 	"github.com/msouza/grpc-go-course/greet/greetpb"
 
-	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 type server struct{}
+
+
+func main() {
+	Server()
+}
+
+func Server(){
+	fmt.Println("Starting server ...")
+
+	lis, err := net.Listen("tcp", "0.0.0.0:50051")
+
+	if err != nil {
+		log.Fatalf("Faliled to listen: %v", err)
+	}
+
+	opts := []grpc.ServerOption{}
+	tls := true
+
+	if tls {
+		certFile := "ssl/server.crt"
+		keyFile := "ssl/server.pem"
+		creds, sslErr := credentials.NewServerTLSFromFile(certFile, keyFile)
+		if sslErr != nil {
+			log.Fatalf("Failed loading certificates: %v", sslErr)
+			return
+		}
+		opts = append(opts, grpc.Creds(creds))
+	}
+
+	s := grpc.NewServer(opts...)
+	greetpb.RegisterGreetServiceServer(s, &server{})
+
+	if err := s.Serve(lis); err != nil {
+		log.Fatalf("Failed to serve: %v", err)
+	}
+
+}
+
 
 func (*server) Greet(ctx context.Context, req *greetpb.GreetRequest) (*greetpb.GreetResponse, error) {
 	fmt.Printf("Greet function was invoked with %v\n", req)
@@ -108,19 +147,3 @@ func (*server) GreetWithDeadline(ctx context.Context, req *greetpb.GreetWithDead
 	return res, nil
 }
 
-func main() {
-	fmt.Println("Server running...")
-
-	lis, err := net.Listen("tcp", "0.0.0.0:50051")
-
-	if err != nil {
-		log.Fatalf("Faliled to listen: %v", err)
-	}
-
-	s := grpc.NewServer()
-	greetpb.RegisterGreetServiceServer(s, &server{})
-
-	if err := s.Serve(lis); err != nil {
-		log.Fatalf("Failed to serve: %v", err)
-	}
-}

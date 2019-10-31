@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"google.golang.org/grpc/credentials"
 	"io"
 	"log"
 	"time"
@@ -16,21 +17,33 @@ import (
 func main() {
 	fmt.Println("Hello I'm a client")
 
-	cc, err := grpc.Dial("localhost:50051", grpc.WithInsecure())
+	tls := true
+	opts := grpc.WithInsecure()
+	if tls {
+		certFile := "ssl/ca.crt" // Certificate Authority Trust certificate
+		creds, sslErr := credentials.NewClientTLSFromFile(certFile, "")
+		if sslErr != nil {
+			log.Fatalf("Error while loading CA trust certificate: %v", sslErr)
+			return
+		}
+		opts = grpc.WithTransportCredentials(creds)
+	}
+
+	cc, err := grpc.Dial("localhost:50051", opts)
 	if err != nil {
-		log.Fatalf("Cound not connect: %v", err)
+		log.Fatalf("could not connect: %v", err)
 	}
 
 	defer cc.Close()
 	c := greetpb.NewGreetServiceClient(cc)
 
-	// doUnary(c)
+	doUnary(c)
 	// doSeverStreaming(c)
 	// doClientStreaming(c)
 	// doBiDirectionalStreaming(c)
 
-	doUnaryWithDeadline(c, 5*time.Second) // should complete
-	doUnaryWithDeadline(c, 1*time.Second) // should timeout
+	//doUnaryWithDeadline(c, 5*time.Second) // should complete
+	//doUnaryWithDeadline(c, 1*time.Second) // should timeout
 
 }
 
