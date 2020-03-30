@@ -8,7 +8,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/msouza/grpc-go-course/greet/greetpb"
+	"github.com/grpc-team-meating/greet/greetpb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -37,10 +37,10 @@ func main() {
 	defer cc.Close()
 	c := greetpb.NewGreetServiceClient(cc)
 
-	doUnary(c)
+	// doUnary(c)
 	// doSeverStreaming(c)
 	// doClientStreaming(c)
-	// doBiDirectionalStreaming(c)
+	doBiDirectionalStreaming(c)
 
 	//doUnaryWithDeadline(c, 5*time.Second) // should complete
 	//doUnaryWithDeadline(c, 1*time.Second) // should timeout
@@ -51,25 +51,25 @@ func doUnary(c greetpb.GreetServiceClient) {
 	fmt.Printf("Starting to do a Unary RPC...")
 	req := &greetpb.GreetRequest{
 		Greeting: &greetpb.Greeting{
-			FirstName: "Marcos",
-			LastName:  "Antonio",
+			FirstName: "Team",
+			LastName:  "Meating",
 		},
 	}
 
 	res, err := c.Greet(context.Background(), req)
 	if err != nil {
-		log.Fatalf("error while calling Greet RPC: %v", err)
+		log.Fatalf("Error while calling Greet RPC: %v", err)
 	}
 	log.Printf("Response from Greet: %v", res.Result)
 }
 
 func doSeverStreaming(c greetpb.GreetServiceClient) {
-	fmt.Printf("Starting to do a Server Streamin RPC...")
+	fmt.Printf("Starting to do a Server Streamin RPC...\n")
 
 	req := &greetpb.GreetManyTimesRequest{
 		Greeting: &greetpb.Greeting{
-			FirstName: "Marcos",
-			LastName:  "Antonio",
+			FirstName: "Team",
+			LastName:  "Meating",
 		},
 	}
 
@@ -95,12 +95,12 @@ func doSeverStreaming(c greetpb.GreetServiceClient) {
 }
 
 func doClientStreaming(c greetpb.GreetServiceClient) {
-	fmt.Printf("Starting to do a Client Streamin RPC...\n")
+	fmt.Printf("Starting to do a Client Streaming RPC...\n")
 
 	requests := []*greetpb.LongGreetRequest{
 		&greetpb.LongGreetRequest{
 			Greeting: &greetpb.Greeting{
-				FirstName: "Marcos",
+				FirstName: "Mike",
 			},
 		},
 		&greetpb.LongGreetRequest{
@@ -128,7 +128,7 @@ func doClientStreaming(c greetpb.GreetServiceClient) {
 	stream, err := c.LonGreet(context.Background())
 
 	if err != nil {
-		log.Fatalf("error while calling LongGreet: %v", err)
+		log.Fatalf("Error while calling LongGreet: %v", err)
 	}
 
 	// we iterate over our slice and send each message individualy
@@ -140,7 +140,7 @@ func doClientStreaming(c greetpb.GreetServiceClient) {
 
 	res, err := stream.CloseAndRecv()
 	if err != nil {
-		log.Fatalf("error while reciving response from LongGreet: %v", err)
+		log.Fatalf("Error while reciving response from LongGreet: %v", err)
 	}
 
 	fmt.Printf("LongGreet Response: %v\n", res)
@@ -159,7 +159,7 @@ func doBiDirectionalStreaming(c greetpb.GreetServiceClient) {
 	requests := []*greetpb.GreetEveryoneRequest{
 		&greetpb.GreetEveryoneRequest{
 			Greeting: &greetpb.Greeting{
-				FirstName: "Marcos",
+				FirstName: "Mike",
 			},
 		},
 		&greetpb.GreetEveryoneRequest{

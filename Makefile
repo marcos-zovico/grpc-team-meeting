@@ -1,5 +1,3 @@
-.PHONY: build
-
 
 PROJECT_PATH=$(shell pwd)
 PROTO_FILES=greet.proto
@@ -9,8 +7,14 @@ PROTO_DEST=greet/greetpb
 PROTOC_DOCKER=znly/protoc
 
 
+
 proto:
 	@echo " ---   GENERATING PROTOBUF   --- "
-	# @ mkdir -p $(PROTO_DEST)
 	@ docker run --rm -v $(PROJECT_PATH):$(PROJECT_PATH) -w $(PROJECT_PATH) $(PROTOC_DOCKER)  --go_out=plugins=grpc:./$(PROTO_DEST) -I $(PROTO_PATH) $(PROTO_FILES)
 	@echo " ---     FINISH PROTOBUF     --- "
+
+run-server:
+	@ go run greet/greet_server/server.go
+
+run-client:
+	@ go run greet/greet_client/client.go

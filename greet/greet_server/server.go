@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/msouza/grpc-go-course/greet/greetpb"
+	"github.com/grpc-team-meating/greet/greetpb"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -19,12 +19,11 @@ import (
 
 type server struct{}
 
-
 func main() {
 	Server()
 }
 
-func Server(){
+func Server() {
 	fmt.Println("Starting server ...")
 
 	lis, err := net.Listen("tcp", "0.0.0.0:50051")
@@ -56,23 +55,29 @@ func Server(){
 
 }
 
-
 func (*server) Greet(ctx context.Context, req *greetpb.GreetRequest) (*greetpb.GreetResponse, error) {
+	
 	fmt.Printf("Greet function was invoked with %v\n", req)
 	firstName := req.GetGreeting().GetFirstName()
-	result := "Hello " + firstName
+	lastName := req.GetGreeting().GetLastName()
+	result := fmt.Sprintf("Hello %s %s ", firstName, lastName)
+	
 	res := &greetpb.GreetResponse{
 		Result: result,
 	}
+
 	return res, nil
 }
 
 func (*server) GreetManyTimes(req *greetpb.GreetManyTimesRequest, stream greetpb.GreetService_GreetManyTimesServer) error {
+	
 	fmt.Printf("GreetManyTimes function was invoked with %v\n", req)
 
 	firstName := req.GetGreeting().GetFirstName()
+	lastName := req.GetGreeting().GetLastName()
+
 	for i := 0; i < 10; i++ {
-		result := "Hello " + firstName + " number " + strconv.Itoa(i)
+		result := fmt.Sprintf("Hello %s %s number %v",firstName, lastName, strconv.Itoa(i))
 		res := &greetpb.GreetManyTimesResponse{
 			Result: result,
 		}
@@ -84,7 +89,7 @@ func (*server) GreetManyTimes(req *greetpb.GreetManyTimesRequest, stream greetpb
 }
 
 func (*server) LonGreet(stream greetpb.GreetService_LonGreetServer) error {
-	fmt.Printf("LongGreet function was invoked with a streaming request \n")
+	fmt.Printf("LongGreet function was invoked with a client streaming request \n")
 
 	result := ""
 	for {
@@ -100,7 +105,9 @@ func (*server) LonGreet(stream greetpb.GreetService_LonGreetServer) error {
 		}
 
 		firstName := req.GetGreeting().GetFirstName()
-		result += "Hello " + firstName + "! "
+		lastName := req.GetGreeting().GetLastName()
+
+		result += fmt.Sprintf("Hello %s %s ! ", firstName, lastName)
 	}
 }
 
@@ -108,7 +115,9 @@ func (*server) GreetEveryone(stream greetpb.GreetService_GreetEveryoneServer) er
 	fmt.Printf("GreetEveryone function was invoked with a streaming request \n")
 
 	for {
+		
 		req, err := stream.Recv()
+
 		if err == io.EOF {
 			return nil
 		}
@@ -116,8 +125,11 @@ func (*server) GreetEveryone(stream greetpb.GreetService_GreetEveryoneServer) er
 			log.Fatalf("Error while reading client stram %v", err)
 			return err
 		}
+		
 		firstName := req.GetGreeting().GetFirstName()
-		result := "Hello " + firstName + "! "
+		lastName := req.GetGreeting().GetLastName()
+
+		result := fmt.Sprintf("Hello %s %s ! ", firstName, lastName)
 
 		sendErr := stream.Send(&greetpb.GreetEveryoneResponse{
 			Result: result,
@@ -131,7 +143,8 @@ func (*server) GreetEveryone(stream greetpb.GreetService_GreetEveryoneServer) er
 
 func (*server) GreetWithDeadline(ctx context.Context, req *greetpb.GreetWithDeadlineRequest) (*greetpb.GreetWithDeadlineResponse, error) {
 	fmt.Printf("GreetWithDeadline function was invoked with %v\n", req)
-	for i := 0; i < 3; i++ {
+	
+	for i := 0; i < 3; i++ {	
 		if ctx.Err() == context.Canceled {
 			// the client canceled the request
 			fmt.Println("The client canceled the request!")
@@ -139,11 +152,15 @@ func (*server) GreetWithDeadline(ctx context.Context, req *greetpb.GreetWithDead
 		}
 		time.Sleep(1 * time.Second)
 	}
+
 	firstName := req.GetGreeting().GetFirstName()
-	result := "Hello " + firstName
+	lastName := req.GetGreeting().GetLastName()
+
+	result := fmt.Sprintf("Hello %s %s", firstName, lastName)
+
 	res := &greetpb.GreetWithDeadlineResponse{
 		Result: result,
 	}
+
 	return res, nil
 }
-
