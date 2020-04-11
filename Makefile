@@ -8,10 +8,11 @@ PROTOC_DOCKER=znly/protoc
 
 
 
+# Generating stubs without docker:  protoc greet/greetpb/greet.proto --go_out=plugins=grpc:.
 proto:
-	@echo " ---   GENERATING PROTOBUF   --- "
+	@ echo " ---   GENERATING PROTOBUF   --- "
 	@ docker run --rm -v $(PROJECT_PATH):$(PROJECT_PATH) -w $(PROJECT_PATH) $(PROTOC_DOCKER)  --go_out=plugins=grpc:./$(PROTO_DEST) -I $(PROTO_PATH) $(PROTO_FILES)
-	@echo " ---     FINISH PROTOBUF     --- "
+	@ echo " ---     FINISH PROTOBUF     --- "
 
 run-server:
 	@ go run greet/greet_server/server.go

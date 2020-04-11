@@ -3,13 +3,15 @@ package main
 import (
 	"context"
 	"fmt"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
 	"io"
 	"log"
 	"net"
 	"strconv"
 	"time"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/reflection"
 
 	"github.com/grpc-team-meating/greet/greetpb"
 
@@ -23,6 +25,7 @@ func main() {
 	Server()
 }
 
+// Server start a new gRPC server
 func Server() {
 	fmt.Println("Starting server ...")
 
@@ -32,8 +35,8 @@ func Server() {
 		log.Fatalf("Faliled to listen: %v", err)
 	}
 
-	opts := []grpc.ServerOption{}
 	tls := true
+	opts := []grpc.ServerOption{}
 
 	if tls {
 		certFile := "ssl/server.crt"
@@ -49,6 +52,9 @@ func Server() {
 	s := grpc.NewServer(opts...)
 	greetpb.RegisterGreetServiceServer(s, &server{})
 
+	fmt.Println("Registering reflection on gRPC server.")
+	reflection.Register(s)
+
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("Failed to serve: %v", err)
 	}
@@ -56,12 +62,12 @@ func Server() {
 }
 
 func (*server) Greet(ctx context.Context, req *greetpb.GreetRequest) (*greetpb.GreetResponse, error) {
-	
+
 	fmt.Printf("Greet function was invoked with %v\n", req)
 	firstName := req.GetGreeting().GetFirstName()
 	lastName := req.GetGreeting().GetLastName()
 	result := fmt.Sprintf("Hello %s %s ", firstName, lastName)
-	
+
 	res := &greetpb.GreetResponse{
 		Result: result,
 	}
@@ -70,14 +76,14 @@ func (*server) Greet(ctx context.Context, req *greetpb.GreetRequest) (*greetpb.G
 }
 
 func (*server) GreetManyTimes(req *greetpb.GreetManyTimesRequest, stream greetpb.GreetService_GreetManyTimesServer) error {
-	
+
 	fmt.Printf("GreetManyTimes function was invoked with %v\n", req)
 
 	firstName := req.GetGreeting().GetFirstName()
 	lastName := req.GetGreeting().GetLastName()
 
 	for i := 0; i < 10; i++ {
-		result := fmt.Sprintf("Hello %s %s number %v",firstName, lastName, strconv.Itoa(i))
+		result := fmt.Sprintf("Hello %s %s number %v", firstName, lastName, strconv.Itoa(i))
 		res := &greetpb.GreetManyTimesResponse{
 			Result: result,
 		}
@@ -115,7 +121,7 @@ func (*server) GreetEveryone(stream greetpb.GreetService_GreetEveryoneServer) er
 	fmt.Printf("GreetEveryone function was invoked with a streaming request \n")
 
 	for {
-		
+
 		req, err := stream.Recv()
 
 		if err == io.EOF {
@@ -125,7 +131,7 @@ func (*server) GreetEveryone(stream greetpb.GreetService_GreetEveryoneServer) er
 			log.Fatalf("Error while reading client stram %v", err)
 			return err
 		}
-		
+
 		firstName := req.GetGreeting().GetFirstName()
 		lastName := req.GetGreeting().GetLastName()
 
@@ -143,12 +149,12 @@ func (*server) GreetEveryone(stream greetpb.GreetService_GreetEveryoneServer) er
 
 func (*server) GreetWithDeadline(ctx context.Context, req *greetpb.GreetWithDeadlineRequest) (*greetpb.GreetWithDeadlineResponse, error) {
 	fmt.Printf("GreetWithDeadline function was invoked with %v\n", req)
-	
-	for i := 0; i < 3; i++ {	
+
+	for i := 0; i < 3; i++ {
 		if ctx.Err() == context.Canceled {
 			// the client canceled the request
 			fmt.Println("The client canceled the request!")
-			return nil, status.Error(codes.Canceled, "the client canceled the request")
+			return nil, status.Error(codes.Canceled, "The client canceled the request")
 		}
 		time.Sleep(1 * time.Second)
 	}
@@ -159,6 +165,27 @@ func (*server) GreetWithDeadline(ctx context.Context, req *greetpb.GreetWithDead
 	result := fmt.Sprintf("Hello %s %s", firstName, lastName)
 
 	res := &greetpb.GreetWithDeadlineResponse{
+		Result: result,
+	}
+
+	return res, nil
+}
+
+func (*server) GreetWithErrorHandling(ctx context.Context, req *greetpb.GreetWithErrorHandlingRequest) (*greetpb.GreetWithErrorHandlingResponse, error) {
+
+	fmt.Printf("Greet function was invoked with %v\n", req)
+	firstName := req.GetGreeting().GetFirstName()
+	lastName := req.GetGreeting().GetLastName()
+
+	if firstName == "" || lastName == "" {
+		error := fmt.Sprintf("Invalid request: %v Both FirstName and LastName are required !", req)
+		fmt.Println(error)
+		return nil, status.Error(codes.InvalidArgument, error)
+	}
+
+	result := fmt.Sprintf("Hello %s %s ", firstName, lastName)
+
+	res := &greetpb.GreetWithErrorHandlingResponse{
 		Result: result,
 	}
 

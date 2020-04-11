@@ -50,20 +50,34 @@ message GreetWithDeadlineResponse {
     string result = 1;
 }
 
+message GreetWithErrorHandlingRequest {
+    Greeting greeting = 1;
+}
+
+message GreetWithErrorHandlingResponse {
+    string result = 1;
+}
 
 service GreetService {
-    // Unary
+    // Unary Call
     rpc Greet(GreetRequest) returns (GreetResponse){};
 
-    // Server Streaming
+    // Server Streaming Call
     rpc GreetManyTimes(GreetManyTimesRequest) returns (stream GreetManyTimesResponse){};
 
-    // Client Streaming
+    // Client Streaming Call
     rpc LonGreet(stream LongGreetRequest) returns (LongGreetResponse){};
 
-    // Bi-rectional Streaming
+    // Bi-rectional Streaming Call
     rpc GreetEveryone (stream GreetEveryoneRequest) returns (stream GreetEveryoneResponse){};
 
-    rpc GreetWithDeadline (GreetWithDeadlineRequest) returns (GreetWithDeadlineResponse);
+    // Deadline
+    // Seting client deadline (timeout)
+    rpc GreetWithDeadline (GreetWithDeadlineRequest) returns (GreetWithDeadlineResponse){};
+
+    // error handling
+    // This RPC throw an exception if the first_name or last_name is empty
+    // The error being sent is of type INAVLID_ARGUMENT
+    rpc GreetWithErrorHandling (GreetWithErrorHandlingRequest) returns (GreetWithErrorHandlingResponse){};
 
 } 

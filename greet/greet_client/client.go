@@ -31,7 +31,7 @@ func main() {
 
 	cc, err := grpc.Dial("localhost:50051", opts)
 	if err != nil {
-		log.Fatalf("could not connect: %v", err)
+		log.Fatalf("Could not connect: %v", err)
 	}
 
 	defer cc.Close()
@@ -40,10 +40,12 @@ func main() {
 	// doUnary(c)
 	// doSeverStreaming(c)
 	// doClientStreaming(c)
-	doBiDirectionalStreaming(c)
+	// doBiDirectionalStreaming(c)
 
 	//doUnaryWithDeadline(c, 5*time.Second) // should complete
-	//doUnaryWithDeadline(c, 1*time.Second) // should timeout
+	// doUnaryWithDeadline(c, 1*time.Second) // should timeout
+
+	doUnaryWithErrorHandling(c)
 
 }
 
@@ -220,11 +222,11 @@ func doBiDirectionalStreaming(c greetpb.GreetServiceClient) {
 }
 
 func doUnaryWithDeadline(c greetpb.GreetServiceClient, timeout time.Duration) {
-	fmt.Println("Starting to do a UnaryWithDeadline RPC...")
+	fmt.Printf("Starting to do a UnaryWithDeadline RPC... \n")
 	req := &greetpb.GreetWithDeadlineRequest{
 		Greeting: &greetpb.Greeting{
-			FirstName: "Marcos",
-			LastName:  "Souza",
+			FirstName: "Team",
+			LastName:  "Meating",
 		},
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
@@ -246,4 +248,33 @@ func doUnaryWithDeadline(c greetpb.GreetServiceClient, timeout time.Duration) {
 		return
 	}
 	log.Printf("Response from GreetWithDeadline: %v", res.Result)
+}
+
+func doUnaryWithErrorHandling(c greetpb.GreetServiceClient) {
+	fmt.Printf("Starting to do a Unary RPC... \n")
+	req := &greetpb.GreetWithErrorHandlingRequest{
+		Greeting: &greetpb.Greeting{
+			FirstName: "Team",
+		},
+	}
+
+	res, err := c.GreetWithErrorHandling(context.Background(), req)
+
+	if err != nil {
+		statusErr, ok := status.FromError(err)
+		if ok {
+			if statusErr.Code() == codes.InvalidArgument {
+				fmt.Printf("InvalidArgument from server: %v \n\n", statusErr.Err().Error())
+				fmt.Printf("Code: %v \n", statusErr.Code())
+				fmt.Printf("Message: %v \n", statusErr.Message())
+			} else {
+				fmt.Printf("Unexpected error: %v", statusErr.Err().Error())
+			}
+		} else {
+			log.Fatalf("Error while calling GreetWithErrorHandling RPC: %v", err)
+		}
+		return
+	}
+
+	log.Printf("Response from GreetWithErrorHandling: %v", res.Result)
 }
