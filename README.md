@@ -1,1 +1,1 @@
-# grpc-go-course
+# grpc-team-meeting 
