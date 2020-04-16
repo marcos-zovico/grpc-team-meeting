@@ -54,7 +54,7 @@ func doUnary(c greetpb.GreetServiceClient) {
 	req := &greetpb.GreetRequest{
 		Greeting: &greetpb.Greeting{
 			FirstName: "Team",
-			LastName:  "Meating",
+			LastName:  "Meeting",
 		},
 	}
 
@@ -71,7 +71,7 @@ func doSeverStreaming(c greetpb.GreetServiceClient) {
 	req := &greetpb.GreetManyTimesRequest{
 		Greeting: &greetpb.Greeting{
 			FirstName: "Team",
-			LastName:  "Meating",
+			LastName:  "Meeting",
 		},
 	}
 
@@ -226,7 +226,7 @@ func doUnaryWithDeadline(c greetpb.GreetServiceClient, timeout time.Duration) {
 	req := &greetpb.GreetWithDeadlineRequest{
 		Greeting: &greetpb.Greeting{
 			FirstName: "Team",
-			LastName:  "Meating",
+			LastName:  "Meeting",
 		},
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
